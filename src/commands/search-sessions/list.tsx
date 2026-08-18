@@ -164,12 +164,24 @@ export default function SearchSessions() {
               <Action.CopyToClipboard
                 title="Copy First Message"
                 content={result.firstMessage}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                shortcut={{ modifiers: ["cmd"], key: "enter" }}
               />
               <Action.CopyToClipboard
                 title="Copy Session ID"
                 content={result.id}
                 shortcut={{ modifiers: ["cmd"], key: "." }}
+              />
+              <Action.CopyToClipboard
+                title="Copy Conversation File Path"
+                icon={Icon.CopyClipboard}
+                content={result.filePath}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+              />
+              <Action.CopyToClipboard
+                title="Copy Project Path"
+                icon={Icon.Folder}
+                content={result.projectPath}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "d" }}
               />
               {result.projectPath.startsWith("/") && (
                 <Action.ShowInFinder
