@@ -39,6 +39,20 @@ export type ParsedMessage = Message & {
 
 const UNIX_TIMESTAMP_THRESHOLD = 10000000000; // Timestamps below this are in seconds, not milliseconds
 
+const TEAMMATE_MESSAGE_TAG = "<teammate-message";
+const TEAMMATE_RELAY_PREFIX = "Another Claude session sent a message:";
+
+// Agent-team coordination traffic is machine-generated relay, not conversation. Matched only at the
+// start so context-continuation summaries that merely quote the tag are kept.
+function isTeammateMessage(content: string): boolean {
+  const trimmed = content.trimStart();
+  if (trimmed.startsWith(TEAMMATE_MESSAGE_TAG)) return true;
+  return (
+    trimmed.startsWith(TEAMMATE_RELAY_PREFIX) &&
+    trimmed.slice(TEAMMATE_RELAY_PREFIX.length).trimStart().startsWith(TEAMMATE_MESSAGE_TAG)
+  );
+}
+
 async function resolveProjectPath(projectDir: string, jsonlFiles: string[]): Promise<{ path: string; name: string }> {
   const dirPath = join(CLAUDE_DIR, projectDir);
 
@@ -163,7 +177,7 @@ async function parseUserMessagesOnlyStreaming(
               }
             }
 
-            if (content && content.trim()) {
+            if (content && content.trim() && !isTeammateMessage(content)) {
               const timestamp = parseTimestamp(data.timestamp);
               const pathInfo = extractPathInformation(projectPath, filePath);
 
@@ -276,7 +290,7 @@ async function parseAssistantMessagesOnlyStreaming(
                 projectName,
                 ...pathInfo,
               });
-            } else if (content) {
+            } else if (content && !isTeammateMessage(content)) {
               assistantMessages.push({
                 role: "assistant",
                 content: truncate(sanitizeText(content), 200, ""),
