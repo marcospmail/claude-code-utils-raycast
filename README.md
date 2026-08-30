@@ -58,7 +58,7 @@ View Claude service status, active incidents, and incident history.
 
 ### 📊 **Claude Usage Monitor** (Menu Bar)
 
-Monitor your Claude API usage limits in real-time. Displays 5-hour and 7-day usage percentages in the menu bar with automatic refresh every 5 minutes. Click to see detailed breakdown with reset countdowns and copy-to-clipboard actions.
+Monitor your Claude API usage limits in real-time. Displays 5-hour and 7-day usage percentages in the menu bar, refreshed on a background interval and every time you open the menu. Click to see detailed breakdown with reset countdowns and copy-to-clipboard actions.
 
 ### 📊 **Claude Usage** (View)
 

@@ -25,7 +25,6 @@ Color-coded emoji indicates the highest usage level:
 - **Sonnet (7-Day)** - shown only if data exists
 - **Extra Usage** - shown only if enabled, displays used/limit credits
 - **Last updated** timestamp
-- **Refresh** action (Cmd+R)
 - **Open Anthropic Console** action (Cmd+O)
 
 ## Architecture
@@ -81,17 +80,19 @@ Uses Raycast's `Cache` API to store the last fetched data. On launch, cached dat
 
 ### Auto-Refresh
 
-The `"interval": "5m"` in package.json tells Raycast to launch the command in the background every 5 minutes. Each background launch triggers a fresh API call and updates the cached data.
+The `"interval"` in package.json tells Raycast to launch the command in the background on a schedule. Each background launch triggers a fresh API call and updates the cached data. Opening the menu bar item also mounts the command, so every open fetches fresh data too.
+
+The API call has a 10 second timeout — without it a stalled network would leave the menu bar stuck on "Refreshing..." forever.
 
 ## Usage
 
 1. Ensure you're logged into Claude Code (`claude` in terminal)
 2. The "Claude Usage" command appears in Raycast and as a menu bar icon
-3. Click the menu bar icon to see detailed usage breakdown
-4. Use Cmd+R to force refresh, Cmd+O to open Anthropic Console
+3. Click the menu bar icon to see detailed usage breakdown — opening the menu refreshes the data automatically
+4. Use Cmd+O to open Anthropic Console
 
 ## Error States
 
 - **Not logged in**: Shows "Not logged in" with instruction to run `claude` in terminal
-- **API error**: Shows error message with option to refresh
+- **API error**: Shows the error message in the menu bar; the next open retries
 - **No data yet**: Shows cached data or placeholder while loading
