@@ -1,6 +1,9 @@
 import { getOAuthToken } from "./claude-cli";
 
 const USAGE_API_URL = "https://api.anthropic.com/api/oauth/usage";
+// Without this the request can hang forever on a stalled network (asleep/woken laptop,
+// captive wifi, VPN), leaving the menu bar stuck on "Refreshing...".
+const USAGE_API_TIMEOUT_MS = 10_000;
 
 export interface UsageWindow {
   utilization: number;
@@ -33,22 +36,36 @@ export async function fetchUsageData(): Promise<UsageData> {
     throw new Error("Not logged in. Run `claude` in your terminal to authenticate.");
   }
 
-  const response = await fetch(USAGE_API_URL, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "User-Agent": "claude-code/cli",
-      Authorization: `Bearer ${token}`,
-      "anthropic-beta": "oauth-2025-04-20",
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), USAGE_API_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+  let json: Record<string, Record<string, unknown>>;
+  try {
+    const response = await fetch(USAGE_API_URL, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "User-Agent": "claude-code/cli",
+        Authorization: `Bearer ${token}`,
+        "anthropic-beta": "oauth-2025-04-20",
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    json = (await response.json()) as Record<string, Record<string, unknown>>;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("Request timed out");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const json = (await response.json()) as Record<string, Record<string, unknown>>;
 
   const fiveHour = json.five_hour;
   const sevenDay = json.seven_day;
