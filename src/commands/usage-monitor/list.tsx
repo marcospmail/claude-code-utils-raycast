@@ -1,30 +1,11 @@
 import { Clipboard, MenuBarExtra, showHUD, open } from "@raycast/api";
 import { useEffect, useRef, useState } from "react";
 import { UsageData, fetchUsageData, formatResetTime, utilizationPercent } from "../../utils/usage-api";
-import {
-  getCachedData,
-  setCachedData,
-  buildProgressBar,
-  formatRelativeTime,
-  REFRESH_INTERVAL_MS,
-} from "../../utils/usage-cache";
+import { getCachedData, setCachedData, buildProgressBar, formatRelativeTime } from "../../utils/usage-cache";
 
-// Module-level fetch that survives component remounts
-let backgroundFetchInProgress = false;
-let lastBackgroundError: string | null = null;
-async function backgroundFetchAndCache() {
-  if (backgroundFetchInProgress) return;
-  backgroundFetchInProgress = true;
-  try {
-    const usage = await fetchUsageData();
-    setCachedData(usage);
-    lastBackgroundError = null;
-  } catch (err) {
-    lastBackgroundError = err instanceof Error ? err.message : "Failed to fetch usage";
-  } finally {
-    backgroundFetchInProgress = false;
-  }
-}
+// Keep the "Refreshing..." title on screen long enough to be readable even when
+// the API answers instantly.
+const MIN_REFRESH_SPINNER_MS = 1000;
 
 function copyValue(value: string) {
   return async () => {
@@ -37,23 +18,13 @@ export default function UsageMonitor() {
   const cached = getCachedData();
   const [data, setData] = useState<UsageData | null>(cached);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(!cached || Date.now() - cached.fetchedAt.getTime() >= REFRESH_INTERVAL_MS);
+  const [refreshFailed, setRefreshFailed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const hasDataRef = useRef(!!cached);
   const refreshingRef = useRef(false);
 
-  async function refresh(force: boolean) {
+  async function refresh() {
     if (refreshingRef.current) return;
-
-    if (!force) {
-      const cachedCheck = getCachedData();
-      if (cachedCheck && Date.now() - cachedCheck.fetchedAt.getTime() < REFRESH_INTERVAL_MS) {
-        setData(cachedCheck);
-        setError(null);
-        setIsLoading(false);
-        return;
-      }
-    }
-
     refreshingRef.current = true;
     setIsLoading(true);
     const start = Date.now();
@@ -62,14 +33,19 @@ export default function UsageMonitor() {
       setData(usage);
       setCachedData(usage);
       setError(null);
+      setRefreshFailed(false);
       hasDataRef.current = true;
       const elapsed = Date.now() - start;
-      if (elapsed < 1000) {
-        await new Promise((r) => setTimeout(r, 1000 - elapsed));
+      if (elapsed < MIN_REFRESH_SPINNER_MS) {
+        await new Promise((r) => setTimeout(r, MIN_REFRESH_SPINNER_MS - elapsed));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch usage";
-      if (!hasDataRef.current && !getCachedData()) {
+      // Keep the cached numbers on screen when we have them; only replace the whole
+      // menu with an error when there is nothing at all to show.
+      if (hasDataRef.current) {
+        setRefreshFailed(true);
+      } else {
         setError(message);
       }
     } finally {
@@ -78,17 +54,16 @@ export default function UsageMonitor() {
     }
   }
 
+  // Raycast mounts the command every time the menu bar item is opened, so opening
+  // the menu is itself the refresh action — no manual Refresh item needed.
   useEffect(() => {
-    refresh(false);
-    const interval = setInterval(() => backgroundFetchAndCache(), REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
+    refresh();
   }, []);
 
   if (error) {
     return (
       <MenuBarExtra title={error} isLoading={isLoading}>
         <MenuBarExtra.Item title="Claude Usage" onAction={() => open("https://claude.ai/settings/usage")} />
-        <MenuBarExtra.Item title="Refresh" onAction={() => refresh(true)} />
       </MenuBarExtra>
     );
   }
@@ -105,7 +80,6 @@ export default function UsageMonitor() {
   return (
     <MenuBarExtra title={title} isLoading={isLoading}>
       <MenuBarExtra.Item title="Claude Usage" onAction={() => open("https://claude.ai/settings/usage")} />
-      <MenuBarExtra.Item title="Refresh" onAction={() => refresh(true)} />
       <MenuBarExtra.Separator />
 
       <MenuBarExtra.Section title="5-Hour Window">
@@ -147,7 +121,7 @@ export default function UsageMonitor() {
 
       {data && (
         <MenuBarExtra.Item
-          title={`Updated ${formatRelativeTime(data.fetchedAt)}${lastBackgroundError ? " (refresh failed)" : ""}`}
+          title={`Updated ${formatRelativeTime(data.fetchedAt)}${refreshFailed ? " (refresh failed)" : ""}`}
         />
       )}
     </MenuBarExtra>
