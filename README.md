@@ -36,6 +36,10 @@ View and manage your Claude Code commands from `~/.claude/commands`.
 
 View the latest Claude Code changelog with updates, releases, and new features directly from the official repository.
 
+### 🔔 **Changelog Monitor** (Menu Bar)
+
+Keeps the latest Claude Code version in your menu bar. Shows `vX.Y.Z` normally and swaps it for **NEW VERSION!** as soon as a newer release lands, until you open the menu. The dropdown lists the 10 most recent versions with their change counts; clicking one opens that version's changes in Raycast.
+
 ### 🔍 **Search Sessions**
 
 Deep search through all Claude Code session content. Find any conversation across all your projects.
@@ -104,6 +108,7 @@ npm run build && npm run publish
    - **Browse Commands** - View Claude Code commands
    - **Browse Skills** - View Claude Code skills
    - **Changelog** - View Claude Code updates and releases
+   - **Changelog Monitor** - Watch for new Claude Code versions from the menu bar
    - **Search Sessions** - Deep search through Claude Code conversations
    - **Transform Selection** - Transform selected text with Claude AI
    - **Chat** - Quick chat with Claude

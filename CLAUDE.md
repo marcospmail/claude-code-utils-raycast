@@ -11,11 +11,11 @@
 ## Architecture Overview
 
 ### Extension Structure
-This is a Raycast extension with 15 commands following the **List + Detail pattern**:
+This is a Raycast extension with 16 commands following the **List + Detail pattern**:
 - Each command has an entry point in `src/<command-name>.tsx` that exports from `src/commands/<command-name>/list.tsx`
 - List views (`list.tsx`) display searchable items
 - Detail views (`detail.tsx`) show full content with actions
-- Entry points exist for: `changelog`, `browse-agents`, `browse-commands`, `browse-snippets`, `browse-skills`, `create-snippet`, `sent-messages`, `received-messages`, `cheatsheet`, `search-sessions`, `chat`, `status`, `transform-selection`, `claude-usage`, `usage-monitor` (menu-bar)
+- Entry points exist for: `changelog`, `browse-agents`, `browse-commands`, `browse-snippets`, `browse-skills`, `create-snippet`, `sent-messages`, `received-messages`, `cheatsheet`, `search-sessions`, `chat`, `status`, `transform-selection`, `claude-usage`, `usage-monitor` (menu-bar), `changelog-monitor` (menu-bar)
 
 ### Shared Components (`src/components/`)
 - `message-list.tsx` — Reusable list view for both sent and received messages (accepts `role`, `fetchMessages`, `searchPlaceholder`, `emptyLabel`). Handles loading, search, date grouping, lazy full-content loading on selection.
@@ -49,6 +49,9 @@ This is a Raycast extension with 15 commands following the **List + Detail patte
 **Changelog Fetching** (`src/utils/changelog.ts`):
 - Fetches from `https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md`
 - Parses markdown to extract versions and changes
+- `src/utils/changelog-cache.ts` caches the parsed versions plus a `changelog-seen-version` marker for the `changelog-monitor` menu bar command
+- `changelog-monitor` shows `vX.Y.Z` in the menu bar, swaps it for `NEW VERSION!` when the newest version differs from the seen marker, and clears the badge on a `LaunchType.UserInitiated` mount (i.e. when the user opens the menu). A fresh install seeds the marker instead of flagging a release the user never saw
+- Clicking a version in `changelog-monitor` calls `launchCommand` on the `changelog` command with `context: { version }`; `changelog/list.tsx` reads it from `LaunchProps.launchContext` and pushes that version's `ChangelogDetail` once the versions have loaded
 
 **Date Grouping** (`src/utils/date-grouping.ts`):
 - Groups messages by date periods (Today, Yesterday, This Week, etc.) via `groupMessagesByDate()`

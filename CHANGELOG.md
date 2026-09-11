@@ -2,6 +2,7 @@
 
 ## [Claude Code Utils 1.1.0] - {PR_MERGE_DATE}
 
+- Added the Changelog Monitor menu bar command with a NEW VERSION! badge
 - Added metadata detail panel in the sent/received messages listing
 
 ## [Initial Release] - {PR_MERGE_DATE}
