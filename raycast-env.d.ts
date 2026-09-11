@@ -32,6 +32,8 @@ declare namespace Preferences {
   export type BrowseCommands = ExtensionPreferences & {}
   /** Preferences accessible in the `changelog` command */
   export type Changelog = ExtensionPreferences & {}
+  /** Preferences accessible in the `changelog-monitor` command */
+  export type ChangelogMonitor = ExtensionPreferences & {}
   /** Preferences accessible in the `search-sessions` command */
   export type SearchSessions = ExtensionPreferences & {}
   /** Preferences accessible in the `transform-selection` command */
@@ -65,6 +67,8 @@ declare namespace Arguments {
   export type BrowseCommands = {}
   /** Arguments passed to the `changelog` command */
   export type Changelog = {}
+  /** Arguments passed to the `changelog-monitor` command */
+  export type ChangelogMonitor = {}
   /** Arguments passed to the `search-sessions` command */
   export type SearchSessions = {}
   /** Arguments passed to the `transform-selection` command */

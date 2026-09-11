@@ -79,6 +79,14 @@
       "keywords": ["version", "release", "update"]
     },
     {
+      "name": "changelog-monitor",
+      "title": "Changelog Monitor",
+      "description": "Watch the Claude Code changelog from the menu bar and get notified of new versions",
+      "mode": "menu-bar",
+      "interval": "1h",
+      "keywords": ["changelog", "version", "release", "update", "new"]
+    },
+    {
       "name": "search-sessions",
       "title": "Search Sessions",
       "description": "Deep search through all Claude Code session content",
