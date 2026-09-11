@@ -70,3 +70,7 @@ export async function fetchChangelog(): Promise<ChangelogVersion[]> {
 export function formatChangelogVersionChanges(version: ChangelogVersion): string {
   return version.changes.map((change) => `- ${change}`).join("\n");
 }
+
+export function formatChangeCount(count: number): string {
+  return `${count} ${count === 1 ? "change" : "changes"}`;
+}
