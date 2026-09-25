@@ -149,7 +149,7 @@
   ],
   "dependencies": {
     "@raycast/api": "^1.103.1",
-    "dotenv": "^17.4.2"
+    "dotenv": "^18.0.2"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.2.0",
