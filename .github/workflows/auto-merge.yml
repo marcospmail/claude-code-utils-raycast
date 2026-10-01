@@ -14,8 +14,20 @@ jobs:
     timeout-minutes: 5
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
+      # Use a GitHub App installation token instead of the default GITHUB_TOKEN.
+      # Merges made with GITHUB_TOKEN skip "Automatically delete head branches"
+      # and, by GitHub's loop-prevention rule, never trigger push:main workflows.
+      # App tokens are exempt from both.
+      - name: Get App token
+        id: app_token
+        uses: peter-murray/workflow-application-token-action@dad2b81e50ce3edeb5f3b7ffbd79f731368bd668 # v5.1.1
+        with:
+          application_id: ${{ secrets.AUTOMERGE_APP_ID }}
+          application_private_key: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}
+          revoke_token: true
+
       - run: gh pr merge "$PR_NUMBER" --auto --merge --repo "$REPO"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
